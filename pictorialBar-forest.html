@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html style="height:100%">
+<head><meta charset="utf-8"></head>
+<body style="margin:0; height:100%; background:#002820">
+<div id="container" style="height:100%"></div>
+<script src="https://fastly.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+const chart = echarts.init(document.getElementById('container'));
+
+const treeDataURI = 'image://data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAA2CAYAAADUOvnEAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA5tJREFUeNrcWE1oE0EUnp0kbWyUpCiNYEpCFSpIMdpLRTD15s2ePHixnj00N4/GoyfTg2fbiwdvvagHC1UQ66GQUIQKKgn1UAqSSFua38b3prPJZDs7s5ufKn0w7CaZ2W/fe9/73kyMRqNB3Nrj1zdn4RJ6du9T2u1a2iHYSxjP4d41oOHGQwAIwSUHIyh8/RA8XeiXh0kLGFoaXiTecw/hoTG4ZCSAaFkY0+BpsZceLtiAoV2FkepZSDk5EpppczBvpuuQCqx0YnkYcVVoqQYMyeCG+lFdaGkXeVOFNu4aEBalOBk6sbQrQF7gSdK5JXjuHXuYVIVyr0TZ0FjKDeCs6km7JYMUdrWAUVmZUBtmRnVPK+x6nIR2xomH06R35ggwJPeofWphr/W5UjPIxq8B2bKgE8C4HVHWvg+2gZjXj19PkdFztY7bk9TDCH/g6oafDPpaoMvZIRI5WyMB/0Hv++HkpTKE0kM+A+h20cPAfN4GuRyp9G+LMTW+z8rCLI8b46XO9zRcYZTde/j0AZm8WGb3Y2F9KLlE2nqYkjFLJAsDOl/lea0q55mqxXcL7YBc++bsCPMe8mUyU2ZIpnCoblca6TZA/ga2Co8PGg7UGUlEDd0ueptglbrRZLLE7poti6pCaWUo2pu1oaYI1CF9b9cCZPO3F8ikJQ/rPpQT5YETht26ss+uCIL2Y8vHwJGpA96GI5mjOlaKhowUy6BcNcgIhDviTGWCGFaqEuufWz4pgcbCh+w0gEOyOjTlTtYYlIWPYWKEsLDzOs+nhzaO1KEpd+MXpOoTUgKiNyhdy5aSMPNVqxtSsJFgza5EWA4zKtCJ2OGbLn0JSLu8+SL4G86p1Fpr7ABXdGFF/UTD4rfmFYFw4G9VAJ9SM3aF8l3yok4/J6IV9sDVb36ynmtJ2M5+CwxTYBdKNMBaocKGV2nYgkz6r+cHBP30MzAfi4Sy+BebSoPIOi8PW1PpCCvr/KOD4k9Zu0WSH0Y0+SxJ2awp/nlwKtcGyHOJ8vNHtRJzhPlsHr8MogtlVtwUU0tSM1x58upSKbfJnSKUR07GVMKkDNfXpzpv0RTHy3nZMVx5IOWdZIaPabGFvfpwpjnvfmJHXLaEvZUTseu/TeLc+xgAPhEAb/PbjO6PBaOTf6LQRh/dERde23zxLtOXbaKNhfq2L/1fAOPHDUhOpIf5485h7l+GNHHiSYPKE3Myz9sFxoJuAyazvwIMAItferha5LTqAAAAAElFTkSuQmCC';
+
+const yearTreeMap = {
+  2015: 1, 2016: 2, 2017: 3, 2018: 4, 2019: 6,
+  2020: 17, 2021: 14, 2022: 13, 2023: 17, 2024: 23
+};
+const yearCompanyMap = {
+  2015: 638, 2016: 1174, 2017: 1532, 2018: 2160, 2019: 2977,
+  2020: 8627, 2021: 19329, 2022: 17007, 2023: 24420, 2024: 30328
+};
+const years = Object.keys(yearTreeMap).map(Number);
+
+const grid = [];
+for(let y=9;y>=0;y--){
+  for(let x=0;x<10;x++){
+    grid.push([x*1.1,y*1.1]);
+  }
+}
+
+function getScatterData(count){
+  return grid.slice(0,count).map(c=>({
+    value: c,
+    symbol: treeDataURI,
+    symbolSize: [40,50]
+  }));
+}
+
+let currentIndex = 0;
+let cumulativeTrees = 0;
+
+function render(year, treeCount){
+  chart.setOption({
+    title: {
+      text: `Year: ${year}  新成立AI公司数: ${yearCompanyMap[year] || '-'}`,
+      left: 'center',
+      top: 10,
+      textStyle: {fontSize:24, color:'#fff'}
+    },
+    xAxis: {
+      type: 'value',
+      min: -0.5,
+      max: 10.5,
+      show: false
+    },
+    yAxis: {
+      type: 'value',
+      min: -1,
+      max: 12,
+      show: false
+    },
+    series: [{
+      type: 'scatter',
+      data: getScatterData(treeCount),
+      symbolKeepAspect: false
+    }]
+  });
+}
+
+function updateByIndex(idx){
+  if(idx<0) idx=0;
+  if(idx>=years.length) idx=years.length-1;
+  currentIndex = idx;
+  cumulativeTrees = 0;
+  for(let i=0;i<=idx;i++){
+    cumulativeTrees += yearTreeMap[years[i]];
+  }
+  render(years[idx], cumulativeTrees);
+}
+
+updateByIndex(0);
+
+// 控制逻辑：首次需要额外滑动 N 次
+let bufferedScrolls = 0;
+const initialScrollBuffer = 4;
+let lastScrollTime = 0;
+
+window.addEventListener('wheel', e => {
+  const now = Date.now();
+  if (now - lastScrollTime < 500) return;
+  lastScrollTime = now;
+
+  if (initialScrollBuffer > 0 && bufferedScrolls < initialScrollBuffer) {
+    bufferedScrolls++;
+    return;
+  }
+
+  const delta = e.deltaY;
+  if (delta > 0) {
+    updateByIndex(currentIndex + 1);
+  } else if (delta < 0) {
+    updateByIndex(currentIndex - 1);
+  }
+
+  e.preventDefault();
+}, {passive:false});
+</script>
+</body>
+</html>
